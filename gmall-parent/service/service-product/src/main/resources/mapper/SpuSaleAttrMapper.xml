@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper SYSTEM "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yee.mapper.SpuSaleAttrMapper">
+
+    <resultMap id="spuSaleAttrMap" type="com.yee.gmall.model.product.SpuSaleAttr" autoMapping="true">
+        <id property="id" column="id"></id>
+        <collection property="spuSaleAttrValueList" ofType="com.yee.gmall.model.product.SpuSaleAttrValue" autoMapping="true">
+            <id property="id" column="spu_sale_attr_value_id"></id>
+        </collection>
+    </resultMap>
+
+    <!--根据spu的id查询出这个spu的销售属性和销售属性值的列表-->
+    <select id="selectSpuSaleAttrBySpuId" resultMap="spuSaleAttrMap">
+        SELECT
+            t1.id,
+            t1.spu_id,
+            t1.sale_attr_name,
+            t1.base_sale_attr_id,
+            t2.id as spu_sale_attr_value_id,
+            t2.sale_attr_value_name
+        FROM
+            spu_sale_attr t1
+            INNER JOIN spu_sale_attr_value t2 ON t1.spu_id = t2.spu_id
+            AND t1.base_sale_attr_id = t2.base_sale_attr_id
+        WHERE
+            t1.spu_id = #{spuId}
+    </select>
+
+    <select id="selectSpuSaleAttrBySpuIdAndSkuId" resultMap="spuSaleAttrMap">
+        SELECT
+            t1.id,
+            t1.spu_id,
+            t1.sale_attr_name,
+            t1.base_sale_attr_id,
+            t2.sale_attr_value_name,
+            t2.id AS spu_sale_attr_value_id,
+        IF
+            ( t3.sku_id IS NULL, 0, 1 ) AS isChecked
+        FROM
+            spu_sale_attr t1
+            INNER JOIN spu_sale_attr_value t2 ON t1.spu_id = t2.spu_id
+            AND t1.base_sale_attr_id = t2.base_sale_attr_id
+            LEFT JOIN sku_sale_attr_value t3 ON t3.sku_id = #{skuId}
+            AND t3.sale_attr_value_id = t2.id
+        WHERE
+            t1.spu_id = #{spuId}
+        ORDER BY
+            t1.base_sale_attr_id
+    </select>
+</mapper>
